@@ -1,9 +1,9 @@
 
 # gym-graph-search
 
-Environment for graph search, such as in Dijkstra's algorithm or DFS.
+Environment for graph search problems.
 
-See a demonstration usage in `./demo`
+See demonstration of usage in `./demo`
 
 # Usage
 
@@ -12,12 +12,13 @@ import gym
 import gym_graph_search
 
 env = gym.make("graph-search-v0")
+...
 ```
 
 # Installation
 
 ```
-cd gym_graph_search
+cd gym-graph-search
 pip install -e .
 ```
 
