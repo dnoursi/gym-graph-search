@@ -18,7 +18,7 @@ class GraphSearchEnv(gym.Env):
         # number of nodes (can be 2**n?)
         self.N = N
 
-        self.graph_edges = [np.random.choice(a=N, size=n) for _ in range(N)]
+        self.graph_edges = [list(np.random.choice(a=N, size=n)) for _ in range(N)]
 
         self.observation_space = spaces.Discrete(N)
         self.action_space = spaces.Discrete(n)
