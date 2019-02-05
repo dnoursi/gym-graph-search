@@ -4,11 +4,13 @@ import gym
 import gym_graph_search
 
 import numpy as np
-import copy
+from copy import deepcopy
 
 
 def main():
     env = gym.make("graph-search-v0")
+    shortest_path = direct_dfs(env)
+    print("DFS directly found the following shortest path", shortest_path)
     nnodes = env.N
     target = nnodes - 1
     paths = dfs(env, nnodes, target)
@@ -52,24 +54,32 @@ def dfs(env, nnodes, target):
         if backtracking:
             assert obs == path[-1]
         if done:
-            solutions.append(copy.deepcopy(path))
+            solutions.append(deepcopy(path))
     print(solutions)
     return solutions
 
-def direct_dfs(env, nnodes, root, target):
+def direct_dfs(env):
+    graph = env.graph_edges
+    target = env.N - 1
+
     solutions = []
 
     paths = [(0,[0])]
     while paths:
         (root, path) = paths.pop()
-        for neighbor in env.get_action_space():
+        for neighbor in graph[root]:
             if neighbor in path:
                 continue
 
             if neighbor == target:
-                solutions.append(path+[neighbor])
+                solutions.append(deepcopy(path+[neighbor]))
             else:
-                paths.append((neighbor, path+[neighbor]))
+                paths.append((neighbor, deepcopy(path+[neighbor])))
+
+    solutions_sort = [(len(s),s) for s in solutions]
+    solutions_sort.sort()
+    return solutions_sort[0][1]
+    print(solutions)
 
 if __name__ == "__main__":
     main()

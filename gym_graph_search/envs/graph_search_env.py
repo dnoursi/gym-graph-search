@@ -10,7 +10,7 @@ class GraphSearchEnv(gym.Env):
     metadata = {'render.modes':[]}
 
     def __init__(self):
-        n = 10
+        n = 3
         N = n**2
 
         # number of neighbors of each node
