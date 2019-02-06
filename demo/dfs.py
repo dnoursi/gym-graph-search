@@ -6,23 +6,26 @@ import gym_graph_search
 import numpy as np
 from copy import deepcopy
 
-
 def main():
     env = gym.make("graph-search-v0")
+
     shortest_path = direct_dfs(env)
     print("DFS directly found the following shortest path", shortest_path)
+
     nnodes = env.N
     target = nnodes - 1
     paths = dfs(env, nnodes, target)
+    print("Stateful DFS found the following paths", paths)
 
 def dfs_agent(neighbors, path, visited):
     unvisited_neighbors = list(set(neighbors) - visited)
     if not unvisited_neighbors:
-        return dfs_backtrack_agent(neighbors, path, visited), True
+        return dfs_backtrack_agent(neighbors, path), True
     return dfs_forward_agent(neighbors, unvisited_neighbors), False
 
-def dfs_backtrack_agent(neighbors, path, visited):
+def dfs_backtrack_agent(neighbors, path):
     desired_state = path[-2]
+    #print(desired_state, neighbors)
     action = neighbors.index(desired_state)
     return action
 
@@ -33,30 +36,35 @@ def dfs_forward_agent(neighbors, unvisited):
     return neighbors.index(unvisited[i_action])
 
 def dfs(env, nnodes, target):
+    solutions = []
+    visited = set()
+    nsteps = 0
+    # Traverse every edge once?
+    total_nsteps = int(env.n * env.N / 2)
 
     obs = env.reset()
-
-    solutions = []
-
-    visited = set()
-    path = []
+    path = [obs]
 
     while len(visited) < nnodes:
-        print(path, solutions)
+    #while nsteps < total_nsteps:
+        #print(path, solutions)
 
         action, backtracking  = dfs_agent(env.get_action_space(), path, visited)
+        obs, _, done, _ = env.step(action)
+
         if backtracking:
+            #print(obs, path)
+            assert obs == path[-2]
             path = path[:-1]
         else:
+            nsteps += 1
             visited.add(obs)
             path.append(obs)
-        obs, reward, done, _ = env.step(action)
-        if backtracking:
-            assert obs == path[-1]
+
         if done:
             solutions.append(deepcopy(path))
-    print(solutions)
     return solutions
+    print(solutions)
 
 def direct_dfs(env):
     graph = env.graph_edges
@@ -83,10 +91,3 @@ def direct_dfs(env):
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
