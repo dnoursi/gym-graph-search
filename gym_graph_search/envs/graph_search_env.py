@@ -80,7 +80,7 @@ class GraphSearchEnv(gym.Env):
         self.current_state = self.graph_edges[self.current_state][action]
 
         obs = self.current_state
-        reward = 1
+        reward = -1
         done = (self.current_state == self.N-1)
         info = {}
         # reward: float. done: bool. info: dict.
