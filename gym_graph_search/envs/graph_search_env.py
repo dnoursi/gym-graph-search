@@ -30,7 +30,7 @@ def random_graph(nneighbors, nnodes):
     remaining_neighbors = list(range(nnodes))
     edges = [[] for _ in range(nnodes)]
     for i in range(nnodes):
-        #print(i)
+        # print(i)
         if i not in remaining_neighbors:
             continue
         remaining_neighbors.remove(i)
@@ -49,7 +49,7 @@ def random_graph(nneighbors, nnodes):
         assert len(edges[i]) == nneighbors
         for neighbor in edges[i]:
             assert i in edges[neighbor]
-        #print(edges)
+        # print(edges)
     return edges
 
 class GraphSearchEnv(gym.Env):
@@ -57,7 +57,7 @@ class GraphSearchEnv(gym.Env):
 
     def __init__(self):
 
-        n = 4
+        n = 64
         N = n**2
         # number of neighbors of each node
         self.n = n

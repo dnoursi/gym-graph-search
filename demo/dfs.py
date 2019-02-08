@@ -11,6 +11,7 @@ def main():
 
     shortest_path = direct_dfs(env)
     print("DFS directly found the following shortest path", shortest_path)
+    return
 
     nnodes = env.N
     target = nnodes - 1
@@ -80,6 +81,7 @@ def direct_dfs(env):
                 continue
 
             if neighbor == target:
+                print(path, len(path), len(solutions))
                 solutions.append(deepcopy(path+[neighbor]))
             else:
                 paths.append((neighbor, deepcopy(path+[neighbor])))
