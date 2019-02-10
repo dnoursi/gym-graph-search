@@ -26,7 +26,7 @@ def steal_two_neighbors(edges, i):
 
 # Not erdos renyi.. although that would be easier
 # Probably need nneighbors, nnodes even integers
-def random_graph(nneighbors, nnodes):
+def fixed_degree_random_graph(nneighbors, nnodes):
     remaining_neighbors = list(range(nnodes))
     edges = [[] for _ in range(nnodes)]
     for i in range(nnodes):
@@ -50,6 +50,42 @@ def random_graph(nneighbors, nnodes):
         for neighbor in edges[i]:
             assert i in edges[neighbor]
         # print(edges)
+    return edges
+
+# Erdos Renyi
+def er_graph(nneighbors, nnodes):
+    proba = nneighbors/nnodes
+    edges = [[] for _ in range(nnodes)]
+    for i in range(nnodes):
+        for j in range(i):
+            if np.random.random() < proba:
+                edges[i].append(j)
+                edges[j].append(i)
+
+    print(edges)
+    return edges
+
+# Barabasi Albert Graph
+def random_graph(n, nnew):
+    lsn = list(range(n))
+    edges = [lsn[:i] + lsn[i+1:] for i in lsn]
+    # Number of neighbors
+    nn = [n-1 for _ in lsn]
+    sum_nn = sum(nn)
+    for i_new in range(n, n + nnew):
+        new = []
+        for i in range(len(edges)):
+            proba = nn[i]/sum_nn
+            if np.random.random() < proba:
+                new.append(i)
+
+                edges[i].append(i_new)
+                nn[i] += 1
+
+                sum_nn += 2
+        edges.append(new)
+        nn.append(len(new))
+        print(edges)
     return edges
 
 class GraphSearchEnv(gym.Env):
