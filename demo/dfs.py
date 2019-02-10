@@ -8,14 +8,14 @@ from copy import deepcopy
 
 def main():
     env = gym.make("graph-search-v0", n=12, m0=6, m=6)
-    print(env.graph_edges)
+    print("Graph env is", env.graph_edges)
     return
     shortest_path = direct_dfs(env)
     print("DFS directly found the following shortest path", shortest_path)
     return
 
     nnodes = env.n
-    target = nnodes - 1
+    target = env.target
     paths = dfs(env, nnodes, target)
     print("Stateful DFS found the following paths", paths)
 
