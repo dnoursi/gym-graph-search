@@ -6,12 +6,40 @@ from gym.utils import seeding
 
 import numpy as np
 
+def normalize_proba(p):
+    s = sum(p)
+    result = [proba/s for proba in p]
+    return result
+
 # Barabasi Albert Graph
 # m0 = initial clique size
 # m = number of neighbors to add to each new node
 # n = number of total desired nodes in graph
 # Begins with graph of m0, adds n-m0 nodes with m neighbors each
 def ba_graph(n, m0, m):
+    assert m <= m0
+    # Create clique
+    ls0 = list(range(m0))
+    edges = [set(ls0[:i] + ls0[i+1:]) for i in ls0]
+    node_weights = [m0-1 for _ in ls0]
+    # Number of neighbors
+    for i_new in range(m0, n):
+        node_probas = normalize_proba(node_weights)
+        new = set(np.random.choice(a=i_new, size=m, p=node_probas, replace=False)) # <-> a = range(i_new)
+        assert len(new) == m
+
+        for neighbor in new:
+            edges[neighbor].add(i_new)
+        edges.append(new)
+
+        node_weights.append(m)
+        for i in range(i_new):
+            if i in new:
+                node_weights[i] += 1
+    return edges
+
+# Does not actually assert value m neighbors
+def old_ba_graph(n, m0, m):
     ls0 = list(range(m0))
     edges = [ls0[:i] + ls0[i+1:] for i in ls0]
     # Number of neighbors
@@ -30,7 +58,7 @@ def ba_graph(n, m0, m):
                 sum_nn += 2
         edges.append(new)
         nn.append(len(new))
-        print(edges)
+        #print(edges)
     return edges
 
 def random_graph(n, m0, m):
