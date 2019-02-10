@@ -67,21 +67,18 @@ def random_graph(n, m0, m):
 class GraphSearchEnv(gym.Env):
     metadata = {'render.modes':[]}
 
-    def __init__(self):
+    def __init__(self, n=10, m0=4, m=4):
 
         # number of nodes
-        N = 40
-        self.N = N
-        m0 = 12
-        m = 8
+        self.n = n
 
         self.root = 0
         self.target = m0-1
 
-        self.graph_edges = random_graph(N, m0, m)
+        self.graph_edges = random_graph(n, m0, m)
 
-        self.observation_space = spaces.Discrete(N)
-        self.action_space = spaces.Discrete(N)
+        self.observation_space = spaces.Discrete(n)
+        self.action_space = spaces.Discrete(n)
         return
 
     def get_action_space(self):

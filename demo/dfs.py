@@ -7,13 +7,14 @@ import numpy as np
 from copy import deepcopy
 
 def main():
-    env = gym.make("graph-search-v0")
-
+    env = gym.make("graph-search-v0", n=12, m0=6, m=6)
+    print(env.graph_edges)
+    return
     shortest_path = direct_dfs(env)
     print("DFS directly found the following shortest path", shortest_path)
     return
 
-    nnodes = env.N
+    nnodes = env.n
     target = nnodes - 1
     paths = dfs(env, nnodes, target)
     print("Stateful DFS found the following paths", paths)
@@ -41,7 +42,7 @@ def dfs(env, nnodes, target):
     visited = set()
     nsteps = 0
     # Traverse every edge once?
-    total_nsteps = int(env.n * env.N / 2)
+    #total_nsteps = int(env.n * env.N / 2)
 
     obs = env.reset()
     path = [obs]
@@ -69,7 +70,7 @@ def dfs(env, nnodes, target):
 
 def direct_dfs(env):
     graph = env.graph_edges
-    target = env.N - 1
+    target = env.target
 
     solutions = []
 
