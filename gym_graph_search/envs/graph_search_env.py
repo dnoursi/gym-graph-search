@@ -5,6 +5,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 
 def normalize_proba(p):
     s = sum(p)
@@ -64,10 +65,36 @@ def old_ba_graph(n, m0, m):
 def random_graph(n, m0, m):
     return ba_graph(n, m0, m)
 
+
+# n points in \R^d
+# center: mu vector,
+# covariance: sigma matrix (just scaled identity right now)
+def gaussian_random_graph(n=10, d=2, center=None, covariance=1.):
+    if center == None:
+        center = np.zeros(d)
+    cov = covariance * np.identity(d)
+    randoms = np.random.multivariate_normal(mean=center, cov=cov, size=(n))
+
+    k = int(n**.5)
+    #nbrs = NearestNeighbors(n_neighbors=k+1, algorithm='ball_tree').fit(randoms)
+    nbrs = NearestNeighbors(n_neighbors=k+1).fit(randoms)
+    _, indicess = nbrs.kneighbors(randoms)
+    edges = [set() for _ in range(n)]
+    for i, indices in enumerate(indicess):
+        # The nearest neighbor of each point is itself
+        indices = indices[1:]
+        edges[i] = edges[i] | set(indices)
+        for j in indices:
+            edges[j].add(i)
+    print(randoms)
+    print(edges)
+
+
+#class BAGraphSearchEnv(GraphSearchEnv):
 class GraphSearchEnv(gym.Env):
     metadata = {'render.modes':[]}
 
-    def __init__(self, n=10, m0=4, m=4):
+    def __init__(self, n=30, m0=20, m=20, initial_mode="clique"):
 
         # number of nodes
         self.n = n
@@ -76,6 +103,7 @@ class GraphSearchEnv(gym.Env):
         self.target = m0-1
 
         self.graph_edges = random_graph(n, m0, m)
+        print("Initialized Random BA Graph with Parameters n,m0,m:", n,m0,m)
 
         self.observation_space = spaces.Discrete(n)
         self.action_space = spaces.Discrete(n)
@@ -120,6 +148,7 @@ def er_graph(nnodes, proba):
 
 # ---
 # Currently deprecated:
+# Each edge has a fixed number of neighbors (fully valid action space)
 # ---
 
 
