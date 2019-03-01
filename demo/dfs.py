@@ -7,7 +7,8 @@ import numpy as np
 from copy import deepcopy
 
 def main():
-    env = gym.make("graph-search-v0", n=12, m0=6, m=6)
+    env = gym.make("graph-search-ba-v0", n=12, m0=6, m=6)
+    env = gym.make("graph-search-rd-v0", n=12, k=6, d=2)
     print("Graph env is", env.graph_edges)
     return
     shortest_path = direct_dfs(env)

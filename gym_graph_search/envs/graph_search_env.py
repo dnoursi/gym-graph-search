@@ -62,36 +62,84 @@ def old_ba_graph(n, m0, m):
         #print(edges)
     return edges
 
-def random_graph(n, m0, m):
-    return ba_graph(n, m0, m)
-
 
 # n points in \R^d
 # center: mu vector,
 # covariance: sigma matrix (just scaled identity right now)
-def gaussian_random_graph(n=10, d=2, center=None, covariance=1.):
+def gaussian_random_graph(n,k,d,cov,clip=None,center=None):
+    # Validate inputs
     if center == None:
         center = np.zeros(d)
-    cov = covariance * np.identity(d)
-    randoms = np.random.multivariate_normal(mean=center, cov=cov, size=(n))
+    if clip == None:
+        clip = cov * d
 
-    k = int(n**.5)
-    #nbrs = NearestNeighbors(n_neighbors=k+1, algorithm='ball_tree').fit(randoms)
-    nbrs = NearestNeighbors(n_neighbors=k+1).fit(randoms)
-    _, indicess = nbrs.kneighbors(randoms)
+    covM = cov * np.identity(d)
+
+    # Create graph
+    vectors = np.random.multivariate_normal(mean=center, cov=covM, size=(n))
+      # Clip vectors
+    for vector in vectors:
+        vector = np.array([np.sign(v) * min(abs(v), clip) for v in vector])
+    # , algorithm='ball_tree'
+    nbrs = NearestNeighbors(n_neighbors=k+1).fit(vectors)
+    _, indicess = nbrs.kneighbors(vectors)
     edges = [set() for _ in range(n)]
     for i, indices in enumerate(indicess):
         # The nearest neighbor of each point is itself
         indices = indices[1:]
+        # Set union
         edges[i] = edges[i] | set(indices)
+        # Graph is undirected
         for j in indices:
             edges[j].add(i)
-    print(randoms)
-    print(edges)
+    return edges, vectors
+
+class RdGraphSearchEnv(gym.Env):
+    metadata = {'render.modes':[]}
+
+    def __init__(self, n=10, k=5, d=2, cov=1., clip=5):
+
+        # number of nodes
+        self.n = n
+        assert clip > 0
+
+        self.root = 0
+        self.target = 1
+
+        self.graph_edges, self.state_vectors = gaussian_random_graph(n=n, k=k, d=d, cov=cov, clip=clip)
+        print("Initialized Random Rd Embedded Graph with Parameters n,k,d,cov,clip:", n,k,d,cov,clip)
+
+        self.observation_space = spaces.Box(low=-clip, high=clip, shape = (n,))
+        self.action_space = spaces.Discrete(n)
+        return
+
+    def get_action_space(self):
+        return self.graph_edges[self.current_state]
+
+    def step(self, action):
+        #print("state", self.current_state, "action", action, "edges", self.graph_edges[self.current_state])
+        if action not in self.graph_edges[self.current_state]:
+            reward = -2
+        else:
+            self.current_state = action
+            reward = -1
+
+        obs = self.state_vectors[self.current_state]
+        done = (self.current_state == self.target)
+        info = {}
+        # reward: float. done: bool. info: dict.
+        # return obs, reward, done, info
+        return obs, reward, done, info
+
+    def reset(self):
+        self.current_state = self.root
+        return self.current_state
+
+    def render(self, mode='human', close=False):
+        return
 
 
-#class BAGraphSearchEnv(GraphSearchEnv):
-class GraphSearchEnv(gym.Env):
+class BAGraphSearchEnv(gym.Env):
     metadata = {'render.modes':[]}
 
     def __init__(self, n=30, m0=20, m=20, initial_mode="clique"):
@@ -102,7 +150,7 @@ class GraphSearchEnv(gym.Env):
         self.root = 0
         self.target = m0-1
 
-        self.graph_edges = random_graph(n, m0, m)
+        self.graph_edges = ba_graph(n, m0, m)
         print("Initialized Random BA Graph with Parameters n,m0,m:", n,m0,m)
 
         self.observation_space = spaces.Discrete(n)
