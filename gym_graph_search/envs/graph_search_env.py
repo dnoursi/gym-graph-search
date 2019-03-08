@@ -109,7 +109,7 @@ class RdGraphSearchEnv(gym.Env):
         self.graph_edges, self.state_vectors = gaussian_random_graph(n=n, k=k, d=d, cov=cov, clip=clip)
         print("Initialized Random Rd Embedded Graph with Parameters n,k,d,cov,clip:", n,k,d,cov,clip)
 
-        self.observation_space = spaces.Box(low=-clip, high=clip, shape = (n,))
+        self.observation_space = spaces.Box(low=-clip, high=clip, shape = (d,))
         self.action_space = spaces.Discrete(n)
         return
 
