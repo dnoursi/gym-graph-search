@@ -94,10 +94,55 @@ def gaussian_random_graph(n,k,d,cov,clip=None,center=None):
             edges[j].add(i)
     return edges, vectors
 
+def grg_s(ns,covs,k,d):
+    vectors = [v for v in grps(n, cov, d) for n, cov in zip(ns, covs)]
+
+    nbrs = NearestNeighbors(n_neighbors=k+1).fit(vectors)
+    _, indicess = nbrs.kneighbors(vectors)
+
+    edges = [set() for _ in range(sum(ns))]
+    for i, indices in enumerate(indicess):
+        # The nearest neighbor of each point is itself
+        indices = indices[1:]
+        # Set union
+        edges[i] = edges[i] | set(indices)
+        # Graph is undirected
+        for j in indices:
+            edges[j].add(i)
+    return edges, vectors
+
+# clipped gaussian random points
+def grps(n,cov,d):
+    # Create pts
+    covM = [cov * np.identity(d) for cov in covs]
+    vectors = np.random.multivariate_normal(mean=center, cov=covM, size=(n))
+    # Clip vectors
+    clip = cov * d
+    for vector in vectors:
+        vector = np.array([np.sign(v) * min(abs(v), clip) for v in vector])
+    #
+    return vectors
+
+def check_connected(graph_edges, nnodes):
+    visited = set()
+    visitNext = set([0])
+    while visitNext:
+        current = visitNext.pop()
+        visited.add(current)
+        visitNext |= (set(graph_edges[current]) - visited)
+
+    if len(visited) == nnodes:
+        return True
+    return False
+
 class RdGraphSearchEnv(gym.Env):
     metadata = {'render.modes':[]}
 
-    def __init__(self, n=10, k=5, d=2, cov=1., clip=5):
+    #def __init__(self, n=10, k=5, d=2, cov=1., clip=5, output=True):
+    def __init__(self, n=10, k=5, d=2, cov=1., output=True):
+        clip = cov * d
+
+        self.nsteps = 0
 
         # number of nodes
         self.n = n
@@ -107,11 +152,16 @@ class RdGraphSearchEnv(gym.Env):
         self.target = 1
 
         self.graph_edges, self.state_vectors = gaussian_random_graph(n=n, k=k, d=d, cov=cov, clip=clip)
-        print("Initialized Random Rd Embedded Graph with Parameters n,k,d,cov,clip:", n,k,d,cov,clip)
 
-        self.observation_space = spaces.Box(low=-clip, high=clip, shape = (d,))
+        if output:
+            print("Initialized Random Rd Embedded Graph with Parameters n,k,d,cov,clip:", n,k,d,cov,clip)
+
+        self.observation_space = spaces.Box(low=-clip, high=clip, shape = (d,), dtype=np.float32)
         self.action_space = spaces.Discrete(n)
         return
+
+    def is_connected(self):
+        return check_connected(self.graph_edges, self.n)
 
     def get_action_space(self):
         return self.graph_edges[self.current_state]
@@ -129,6 +179,10 @@ class RdGraphSearchEnv(gym.Env):
         info = {}
         # reward: float. done: bool. info: dict.
         # return obs, reward, done, info
+
+        self.nsteps += 1
+        if self.nsteps == self.n:
+            done=True
         return obs, reward, done, info
 
     def reset(self):
